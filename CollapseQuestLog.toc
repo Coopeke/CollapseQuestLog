@@ -1,7 +1,0 @@
-## Interface: 100100
-## Title: CollapseQuestLog
-## Author: Coop
-## Version: 02.05
-## RequiredDeps:
-
-Main.lua
