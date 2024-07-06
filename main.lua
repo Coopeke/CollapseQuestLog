@@ -1,24 +1,25 @@
 --[[Button Frame Names:
 	Questlog
-	ColQL - Collapse QuestLog 				(Lines 23-39)
-	ExQL - Expand QuestLog 					(Lines 42-56)
+	ColQL - Collapse QuestLog 				(Lines 23-40)
+	ExQL - Expand QuestLog 					(Lines 43-57)
 	TradeSkills
-	ColTS - Collapse TradeSkill Recipe List (Lines 59-94)
-	ExTS - Expand TradeSkill Recipe List 	(Lines 98-131)
+	ColTS - Collapse TradeSkill Recipe List (Lines 59-101)
+	ExTS - Expand TradeSkill Recipe List 	(Lines 104-144)
 	Reputation
-	RepCBtn - Collapse Reputation List 		(Lines 134-152)
-	RepExBtn - Expand Reputation List 		(Lines 156-173)
+	RepCBtn - Collapse Reputation List 		(Lines 147-165)
+	RepExBtn - Expand Reputation List 		(Lines 168-186)
 	Currency
-	CurCol - Collapse Currency List 		(Lines 176-199)
-	CurEx - Expand Currency List 			(Lines 202-226)
+	CurCol - Collapse Currency List 		(Lines 189-212)
+	CurEx - Expand Currency List 			(Lines 215-239)
 	Encounter Journal
-	EJCol - Collapse Overviews List			(Lines 230-264)
-	EJExp - Expand Overviews List 			(Lines 267-294)
-	EJCol2 - Collapse Abilities List		(Lines 298-325)
-	EJExp2 - Expand Abilities List			(Lines 328-371)
+	EJCol - Collapse Overviews List			(Lines 243-277)
+	EJExp - Expand Overviews List 			(Lines 280-307)
+	EJCol2 - Collapse Abilities List		(Lines 311-338)
+	EJExp2 - Expand Abilities List			(Lines 341-369)
 	]]
 
 local frameLoaded = false
+local profsLoaded = false
 
 --Quest Log Button-CollapseQLBtn
 local ColQL = CreateFrame("Button", "Collapse QuestLog", QuestScrollFrame, 'UIPanelButtonTemplate')
@@ -55,6 +56,11 @@ ExQL.tooltipText = "Expand"
 ExQL:RegisterForClicks("LeftButtonUp")
 ExQL:SetScript("OnClick", function() ExpandQuestHeader(0) end)
 
+--Check if Professions UI is loaded
+local function CreateColTS()
+	if not IsAddOnLoaded("Blizzard_Professions") then
+		return
+	end
 
 --Tradeskill Button-Collapse
 local ColTS = CreateFrame("Button", "Collapse TradeSkills", ProfessionsFrame.CraftingPage.RecipeList, 'UIPanelButtonTemplate')
@@ -67,7 +73,7 @@ ColTS:SetNormalTexture("Interface\\Buttons\\UI-MinusButton-Up")
 
 	--Set Attributes for button (i.e. size, anchor, text)
 ColTS:SetSize(20,20)
-ColTS:SetPoint("TOPRIGHT", -0,20)
+ColTS:SetPoint("TOPRIGHT", 0,20)
 ColTS.tooltipText = "Collapse"
 
 	--make button work with left click and execute collapse. two methods:
@@ -77,7 +83,7 @@ ColTS:RegisterForClicks("LeftButtonUp")
 local function SetHeadersCollapseState(collapsed)
 	local dataProvider = TSscrollBox:GetDataProvider()
 
-	dataProvider:GetRootNode():SetChildrenCollapsed(collapsed, TreeListDataProviderConstants.RetainChildCollapse, TreeListDataProviderConstants.SkipInvalidation)
+	dataProvider:GetRootNode():SetChildrenCollapsed(collapsed)
 	dataProvider:Invalidate()
 
 	TSscrollBox:ForEachFrame(function (frame, node)
@@ -92,8 +98,14 @@ end
 ColTS:SetScript("OnClick", function()
 	SetHeadersCollapseState(true)
 end)
+end
 
 
+--Check if Professions UI is loaded
+local function CreateExTS()
+	if not IsAddOnLoaded("Blizzard_Professions") then
+		return
+	end
 --Tradeskill Button-Expand (for dual button method)
 local ExTS = CreateFrame("Button", "Expand Tradeskills", ProfessionsFrame.CraftingPage.RecipeList, 'UIPanelButtonTemplate')
 local TSscrollBox = ProfessionsFrame.CraftingPage.RecipeList.ScrollBox
@@ -114,7 +126,7 @@ ExTS:RegisterForClicks("LeftButtonUp")
 local function SetHeadersCollapseState(collapsed)
 	local dataProvider = TSscrollBox:GetDataProvider()
 
-	dataProvider:GetRootNode():SetChildrenCollapsed(collapsed, TreeListDataProviderConstants.RetainChildCollapse, TreeListDataProviderConstants.SkipInvalidation)
+	dataProvider:GetRootNode():SetChildrenCollapsed(collapsed)
 	dataProvider:Invalidate()
 
 	TSscrollBox:ForEachFrame(function (frame, node)
@@ -129,6 +141,7 @@ end
 ExTS:SetScript("OnClick", function()
 	SetHeadersCollapseState(false)
 end)
+end
 
 
 --Reputation Button-Collapse
@@ -355,15 +368,24 @@ EJExp2:SetScript("OnClick", function()
 end)
 end
 
-
+--Check for required addons to be loaded and then create buttons
 local function OnEvent(self, event, addon)
-    -- Check if the Encounter Journal frame is loaded
+	-- Check if the Encounter Journal frame is loaded
     if addon == "Blizzard_EncounterJournal" then
         frameLoaded = true
         CreateButtons()
         -- Unregister the event to avoid redundant checks
-        self:UnregisterEvent(event)
+
     end
+	--Check if the Blizzard_Professions Frame is loaded
+	if addon == "Blizzard_Professions" then
+		profsLoaded = true
+		CreateColTS()
+		CreateExTS()
+	end
+	if frameLoaded and profsLoaded then 
+		self:UnregisterEvent(event)
+	end
 end
 
 local frame = CreateFrame("Frame")
